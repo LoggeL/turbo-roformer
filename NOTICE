@@ -1,0 +1,39 @@
+turbo-roformer
+Copyright (c) 2026 LoggeL. Licensed under the MIT License (see LICENSE).
+
+This project contains code derived from the following MIT-licensed projects:
+
+1. BS-RoFormer by Phil Wang (lucidrains)
+   https://github.com/lucidrains/BS-RoFormer
+   Copyright (c) 2023 Phil Wang
+   src/turbo_roformer/model.py is a port of its BSRoformer module (architecture, module tree and parameter
+   names); the band layout DEFAULT_FREQS_PER_BANDS comes from it.
+
+2. python-audio-separator by Andrew Beveridge (nomadkaraoke / karaokenerds)
+   https://github.com/nomadkaraoke/python-audio-separator
+   Copyright (c) 2023 karaokenerds
+   src/turbo_roformer/model.py follows its BSRoformer variant (fp32 rotary angles, mlp_expansion_factor);
+   the chunk schedule and Hamming-window overlap-add in src/turbo_roformer/chunking.py and the peak
+   normalisation reproduce its Roformer inference so that results are comparable.
+
+3. rotary-embedding-torch by Phil Wang (lucidrains)
+   https://github.com/lucidrains/rotary-embedding-torch
+   Copyright (c) 2021 Phil Wang
+   The interleaved-pair rotary embedding is re-implemented to match it numerically.
+
+The MIT licenses require the following notice to be preserved:
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+  documentation files (the "Software"), to deal in the Software without restriction, including without
+  limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+  Software, and to permit persons to whom the Software is furnished to do so, subject to the following
+  conditions: The above copyright notice and this permission notice shall be included in all copies or
+  substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
+
+Model weights are NOT part of this repository or its packages. The default model, "BS Roformer Instrumental
+Resurrection" by unwa (https://huggingface.co/pcunwa/BS-Roformer-Resurrection), is downloaded at first use
+from the author's upload (fallback: the python-audio-separator release mirror) and verified by sha256. Its use
+is governed by the terms its author publishes; no license is granted for it by this project.
+
+Paper: Wei-Tsung Lu, Ju-Chiang Wang, Qiuqiang Kong, Yun-Ning Hung, "Music Source Separation with Band-Split
+RoPE Transformer", ICASSP 2024, arXiv:2309.02612.

@@ -1,0 +1,82 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "turbo-roformer"
+version = "0.1.0"
+description = "Real-time BS-RoFormer vocal separation on a CPU (AVX512-BF16 kernels, exact restructured forward)"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE", "NOTICE"]
+requires-python = ">=3.10"
+authors = [{ name = "LoggeL" }]
+keywords = ["source separation", "vocal separation", "karaoke", "bs-roformer", "avx512", "bf16", "cpu inference"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "torch>=2.3",
+    "numpy>=1.24",
+    "soundfile>=0.12",
+    "soxr>=0.3",
+    "pyyaml>=6",
+    "tqdm>=4",
+    "ninja>=1.11; platform_system == 'Linux' and platform_machine == 'x86_64'",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+turbo-roformer = "turbo_roformer.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/LoggeL/turbo-roformer"
+Issues = "https://github.com/LoggeL/turbo-roformer/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/turbo_roformer"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "benchmarks", "docs", "README.md", "LICENSE", "NOTICE", "CHANGELOG.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "weights: needs the real model weights (downloaded once, ~200 MB); run with --weights",
+    "kernels: needs a CPU with AVX512-BF16 and a C++ compiler (auto-skipped otherwise)",
+    "slow: takes more than a few seconds",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+src = ["src", "tests", "benchmarks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "C4", "SIM", "RUF"]
+ignore = [
+    "E741",   # l/I/O names follow the math (L, I, O = lengths, identity, output)
+    "N",
+    "S101",   # asserts in tests
+    "S603", "S607",  # subprocess with ffmpeg / sys.executable
+    "B905",   # zip(strict=) - py310 compatible code
+    "RUF001", "RUF002", "RUF003",
+    "SIM108", "SIM105",
+    "C408",   # dict(...) reads better for config-like kwargs
+    "RUF007",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S", "B018"]
+"benchmarks/*" = ["S", "T20"]
