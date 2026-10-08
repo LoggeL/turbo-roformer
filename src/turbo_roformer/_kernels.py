@@ -92,6 +92,23 @@ def _build_name() -> str:
     return f"turbo_roformer_kernels_{h.hexdigest()[:12]}"
 
 
+def _ninja_on_path() -> None:
+    """cpp_extension runs ``ninja`` from PATH; a venv used without activation has it only in its bin dir."""
+    import sysconfig
+
+    dirs = [sysconfig.get_path("scripts"), str(Path(sys.executable).parent)]
+    try:
+        import ninja
+
+        dirs.insert(0, getattr(ninja, "BIN_DIR", ""))
+    except ImportError:
+        pass
+    path = os.environ.get("PATH", "").split(os.pathsep)
+    extra = [d for d in dirs if d and d not in path and Path(d, "ninja").exists()]
+    if extra:
+        os.environ["PATH"] = os.pathsep.join(extra + path)
+
+
 def load(verbose: bool = False) -> None:
     """Compile (once per machine/torch version, cached) and load the kernels. Raises KernelUnavailable."""
     global _loaded
@@ -104,11 +121,12 @@ def load(verbose: bool = False) -> None:
         import torch
         from torch.utils import cpp_extension
 
+        _ninja_on_path()
         name = _build_name()
         build_dir = cache_root() / "kernels" / name
         build_dir.mkdir(parents=True, exist_ok=True)
         if not any(build_dir.glob("*.so")):
-            log.info("compiling AVX512-BF16 kernels into %s (one-time, ~1 min)", build_dir)
+            log.info("compiling AVX512-BF16 kernels into %s (one-time, ~10-60 s)", build_dir)
         try:
             cpp_extension.load(
                 name=name,

@@ -82,7 +82,7 @@ def synth_music(n: int, sr: int = 44100, channels: int = 2, seed: int = 0) -> np
     out = np.zeros((channels, n))
     for c in range(channels):
         sig = np.zeros(n)
-        for k in range(6):
+        for _ in range(6):
             f0 = 110.0 * 2 ** (rng.integers(0, 24) / 12)
             start = rng.uniform(0, max(t[-1], 1e-3))
             env = np.where(t >= start, np.exp(-(t - start) * rng.uniform(1, 4)), 0.0)

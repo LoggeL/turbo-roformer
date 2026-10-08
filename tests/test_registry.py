@@ -44,9 +44,17 @@ def test_ensure_weights_uses_fallback_and_cache(tmp_path):
     src.write_bytes(b"abc" * 4096)
     sha = hashlib.sha256(src.read_bytes()).hexdigest()
     spec = registry.ModelSpec(
-        name="t", description="", filename="t.ckpt", sha256=sha, size=src.stat().st_size,
+        name="t",
+        description="",
+        filename="t.ckpt",
+        sha256=sha,
+        size=src.stat().st_size,
         urls=((tmp_path / "missing.bin").as_uri(), src.as_uri()),
-        model_config={}, hop_length=1, dim_t=2, author="", homepage="",
+        model_config={},
+        hop_length=1,
+        dim_t=2,
+        author="",
+        homepage="",
     )
     p = registry.ensure_weights(spec, tmp_path / "models", progress=False)
     assert p.read_bytes() == src.read_bytes()
