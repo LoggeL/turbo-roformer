@@ -48,8 +48,9 @@ Pro 17-Sekunden-Abschnitt sinkt die Rechenzeit in mehreren Schritten von 40,3 s 
 5. **Fusionierte Kernel:** Rotary-Embedding, Residual-Addition und die nächste Normierung werden direkt beim
    Schreiben der Matrixmultiplikations-Ergebnisse erledigt.
 
-Die bf16-Ergebnisse weichen nur um ~54 dB vom exakten fp32-Ergebnis ab – deutlich weniger als die ~31 dB, um die
-sich die abschnittsweise Verarbeitung selbst von einer Overlap-8-Referenz unterscheidet. Ein MP3-Export mit
+Der bf16-Rundungsfehler liegt ~54 dB unter dem Signal (gegenüber dem exakten fp32-Ergebnis), der Fehler durch die
+abschnittsweise Verarbeitung selbst dagegen nur ~31 dB (gegenüber einer Overlap-8-Referenz) – bf16 fällt also nicht ins
+Gewicht. Ein MP3-Export mit
 320 kbit/s verändert das Signal stärker (36,5 dB) als die bf16-Rechnung.
 
 Details: [how-it-works.md](how-it-works.md) und [benchmarks.md](benchmarks.md) (auf Englisch).
@@ -66,7 +67,8 @@ Details: [how-it-works.md](how-it-works.md) und [benchmarks.md](benchmarks.md) (
 
 - Ein `separate()`-Aufruf pro Instanz gleichzeitig (gleichzeitige Aufrufe werden per Lock nacheinander abgearbeitet).
 - Validiert ist nur das Modell „BS Roformer Instrumental Resurrection“ von unwa.
-- Clips unter 17 Sekunden werden aufgefüllt; das Ergebnis weicht leicht von derselben Stelle im ganzen Song ab.
+- Clips unter 17 Sekunden werden nur minimal aufgefüllt und ohne Kontext verarbeitet; das Ergebnis weicht leicht von
+  derselben Stelle im ganzen Song ab.
 - Keine GPU-Unterstützung.
 
 ## Lizenz und Dank

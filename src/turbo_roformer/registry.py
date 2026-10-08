@@ -76,7 +76,7 @@ MODELS: dict[str, ModelSpec] = {
         sha256="16311025a5133ae6411760ccfe9e3e66b31a01d9d8bec0a03fa7ec4bedac7a15",
         size=204483033,
         urls=(
-            "https://huggingface.co/pcunwa/BS-Roformer-Resurrection/resolve/main/BS-Roformer-Resurrection-Inst.ckpt",
+            "https://huggingface.co/pcunwa/BS-Roformer-Resurrection/resolve/8fc1a62f765e3e738db8394d7e87e379acc4c675/BS-Roformer-Resurrection-Inst.ckpt",
             "https://github.com/nomadkaraoke/python-audio-separator/releases/download/model-configs/"
             "bs_roformer_instrumental_resurrection_unwa.ckpt",
         ),
@@ -92,6 +92,12 @@ MODELS: dict[str, ModelSpec] = {
         ),
     ),
 }
+
+
+def is_known(name: str) -> bool:
+    """True when ``name`` is a registry name or alias (checked before treating it as a file path)."""
+    key = name.lower()
+    return any(key == spec.name or key in spec.aliases for spec in MODELS.values())
 
 
 def resolve_spec(name: str) -> ModelSpec:

@@ -79,3 +79,10 @@ def test_yaml_config_with_python_tuples(tmp_path):
     bad.write_text("model: !!python/object/apply:os.system ['true']\n")
     with pytest.raises(Exception):  # noqa: B017 - any yaml constructor error
         registry.load_yaml_config(bad)
+
+
+def test_registry_name_wins_over_same_named_path(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "resurrection").mkdir()
+    assert registry.is_known("resurrection") and registry.is_known("RESURRECTION")
+    assert not registry.is_known("tiny.ckpt")

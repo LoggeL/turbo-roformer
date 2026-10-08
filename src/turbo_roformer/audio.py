@@ -90,6 +90,8 @@ def load(path: str | os.PathLike) -> tuple[np.ndarray, int]:
     """
     import soundfile as sf
 
+    if not Path(path).is_file():
+        raise FileNotFoundError(f"{path}: no such file")
     try:
         y, sr = sf.read(str(path), dtype="float32", always_2d=True)
         return np.ascontiguousarray(y.T), int(sr)

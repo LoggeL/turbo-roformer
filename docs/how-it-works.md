@@ -182,5 +182,5 @@ python-audio-separator and 31.36 dB for exact fp32). An MP3 encode of the result
   hand-written attention is faster.
 * **ONNX Runtime** fp32: 30.7 s per chunk.
 * **The integrated GPU** (Radeon 780M via ROCm): unstable on this machine (GPU hangs), not pursued.
-* **Mel-band RoFormer** models: an experimental fast path reusing the generic kernels reaches ~0.36 chunk RTF
-  (~61 dB vs fp32) but is not packaged yet — see the roadmap in the README.
+* **Mel-band RoFormer** models: a pre-release experiment (not in this repository) reusing the generic kernels
+  reached ~0.36 chunk RTF (~61 dB vs fp32) but is not packaged yet — see the roadmap in the README.

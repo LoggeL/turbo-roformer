@@ -94,3 +94,23 @@ def test_cli_human_output(tmp_path):
 def test_cli_errors(tmp_path):
     assert _run(check=False).returncode == 2
     assert _run("x.wav", "--overlap", "0.5", check=False).returncode == 2
+
+
+def test_cli_missing_input_fails_before_loading(tmp_path):
+    r = _run(str(tmp_path / "nope.wav"), check=False)
+    assert r.returncode == 2
+    assert "no such file" in r.stderr and "Traceback" not in r.stderr
+
+
+def test_cli_kernels_fp32_is_a_usage_error(tmp_path):
+    wav = tmp_path / "a.wav"
+    sf.write(wav, synth_music(44100).T, 44100)
+    r = _run(str(wav), "--backend", "kernels", "--precision", "fp32", check=False)
+    assert r.returncode == 2 and "bf16 only" in r.stderr and "Traceback" not in r.stderr
+
+
+def test_cli_bad_model_is_a_clean_error(tmp_path):
+    wav = tmp_path / "a.wav"
+    sf.write(wav, synth_music(44100).T, 44100)
+    r = _run(str(wav), "--model", "does-not-exist", check=False)
+    assert r.returncode == 1 and "error" in r.stderr and "Traceback" not in r.stderr

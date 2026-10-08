@@ -99,7 +99,7 @@ class Separator:
         self._configure(net, backend, precision)
         self.load_s = time.perf_counter() - t0
         self._lock = threading.Lock()
-        log.info(
+        log.debug(
             "turbo-roformer: %s, backend=%s, precision=%s, threads=%s (load %.1f s)",
             self.model_name,
             self.backend,
@@ -111,8 +111,13 @@ class Separator:
     # ------------------------------------------------------------------ construction helpers
     @staticmethod
     def _load_reference(model, model_dir, config, progress) -> tuple[str, BSRoformer, int, int]:
+        if registry.is_known(str(model)):
+            spec = registry.resolve_spec(str(model))
+            path = registry.ensure_weights(spec, model_dir, progress)
+            net = load_checkpoint(build_model(spec.model_config), str(path))
+            return spec.name, net, spec.hop_length, spec.dim_t
         p = Path(str(model)).expanduser()
-        if p.suffix in (".ckpt", ".pt", ".pth") or p.exists():
+        if p.suffix in (".ckpt", ".pt", ".pth") or p.is_file():
             if config is None:
                 raise ValueError("a custom checkpoint needs config=<yaml>")
             cfg = registry.load_yaml_config(config)

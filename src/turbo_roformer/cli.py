@@ -6,8 +6,10 @@ import argparse
 import json
 import logging
 import platform
+import subprocess
 import sys
 import time
+from pathlib import Path
 
 from . import __version__
 
@@ -65,21 +67,31 @@ def main(argv: list[str] | None = None) -> int:
         ap.error("no input files (or use --info)")
     if a.overlap < 1:
         ap.error("--overlap must be >= 1")
+    if a.backend == "kernels" and a.precision != "bf16":
+        ap.error("--backend kernels is bf16 only; use --precision bf16 or --backend torch")
+    missing = [p for p in a.inputs if not Path(p).is_file()]
+    if missing:
+        ap.error("no such file: " + ", ".join(missing))
     logging.basicConfig(level=logging.WARNING if a.quiet else logging.INFO, format="%(message)s", stream=sys.stderr)
 
     from .separator import Separator
 
-    sep = Separator(
-        a.model,
-        precision=a.precision,
-        threads=a.threads,
-        model_dir=a.model_dir,
-        backend=a.backend,
-        config=a.config,
-        progress=not a.quiet,
-    )
+    try:
+        sep = Separator(
+            a.model,
+            precision=a.precision,
+            threads=a.threads,
+            model_dir=a.model_dir,
+            backend=a.backend,
+            config=a.config,
+            progress=not a.quiet,
+        )
+    except (ValueError, KeyError, RuntimeError, OSError) as e:
+        print(f"turbo-roformer: error: {e}", file=sys.stderr)
+        return 1
     print(f"model load {sep.load_s:.1f} s ({sep.backend}, {sep.precision}, {a.threads} threads)", file=sys.stderr)
     formats = tuple(a.formats or ["wav"])
+    status = 0
     for path in a.inputs:
         t_chunk = [time.perf_counter()]
 
@@ -89,7 +101,12 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"  chunk {k}/{n}: {now - t_chunk[0]:.2f} s", file=sys.stderr, flush=True)
                 t_chunk[0] = now
 
-        res = sep.separate_file(path, a.out_dir, formats=formats, overlap=a.overlap, progress=progress)
+        try:
+            res = sep.separate_file(path, a.out_dir, formats=formats, overlap=a.overlap, progress=progress)
+        except (ValueError, RuntimeError, OSError, subprocess.CalledProcessError) as e:
+            print(f"turbo-roformer: error: {path}: {e}", file=sys.stderr)
+            status = 1
+            continue
         if a.json:
             print(json.dumps({"input": path, **res}))
         else:
@@ -99,7 +116,7 @@ def main(argv: list[str] | None = None) -> int:
             )
             for p in res["files"].values():
                 print(f"  -> {p}")
-    return 0
+    return status
 
 
 if __name__ == "__main__":

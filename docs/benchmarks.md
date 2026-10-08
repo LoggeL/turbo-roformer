@@ -33,12 +33,13 @@ turbo-roformer 0.1.0, model "BS Roformer Instrumental Resurrection" (unwa), over
 | pipeline | overlap | chunks | wall | RTF | peak RSS |
 |---|---:|---:|---:|---:|---:|
 | python-audio-separator 0.47.0 CLI, fp32 (stock) | 2 | 29 | 20:32 | 4.88 | 3.0 GB |
-| turbo-roformer, exact fp32 path ¹ | 2 | 29 | 12:17 | 2.92 | — |
+| turbo-roformer, exact fp32 path (`--backend torch --precision fp32`) ¹ | 2 | 29 | 12:19 | 2.93 | 3.67 GB |
 | **turbo-roformer, bf16 kernels (default)** | **2** | **29** | **3:05** | **0.732** | **2.39 GB** |
 | turbo-roformer, bf16 kernels | 1.5 | 22 | 2:20 | 0.556 | 2.39 GB |
 | turbo-roformer, bf16 kernels | 3 | 43 | 4:34 | 1.087 | 2.39 GB |
 
-¹ measured with the pre-release code that this package was ported from (identical forward).
+¹ re-measured with v0.1.0 (the pre-release code it was ported from measured 12:17, RTF 2.92); the output is
+bit-identical to that pre-release fp32 output.
 Earlier runs of the same default configuration measured RTF 0.717–0.733 (181–185 s).
 
 Quality of the same runs:

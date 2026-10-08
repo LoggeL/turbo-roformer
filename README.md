@@ -19,8 +19,9 @@ and **6.7× faster** than python-audio-separator running the same model on the s
 
 RTF = wall time / song duration, model load (~1 s) excluded. The song is a commercial pop/worship track and is
 not included; the reproducible synthetic benchmark and the full methodology are in
-[docs/benchmarks.md](docs/benchmarks.md). The bf16 output is 53.6 dB away from the stock output (53.7 dB from
-exact fp32) — far below the ~31 dB that the chunked inference itself differs from an overlap-8 reference.
+[docs/benchmarks.md](docs/benchmarks.md). The bf16 rounding error sits 53.6 dB below the signal (SNR vs the stock
+output; 53.7 dB vs exact fp32), while chunked inference alone already leaves an error only ~31 dB below it (vs an
+overlap-8 reference) — so bf16 adds a negligible error.
 
 ## Quickstart
 
@@ -105,6 +106,9 @@ RTF 1.35, 6 threads 0.94, 8 threads 0.75, 16 threads 0.75.
 - One `separate()` at a time per `Separator` (an internal lock serialises concurrent calls; buffers are reused).
   `threads` and the glibc malloc tuning are process-wide settings. Calls from worker threads work and use an
   allocation-free FF kernel (~3 % slower).
+- On Linux, creating a `Separator` tunes glibc malloc for the whole process (no mmap for large blocks, 2 GB trim
+  threshold), so the process RSS does not shrink after a separation. In long-lived services where that matters, set
+  `TURBO_ROFORMER_NO_MALLOPT=1` (costs ~30 % speed) or run separation in a dedicated worker process.
 - The fast path supports single-stem stereo BS-RoFormer checkpoints with 8 heads × 64; the fully fused kernels
   additionally need dim 256 (others fall back to the partially fused path). Only the "Instrumental Resurrection"
   model is in the registry and validated; other checkpoints load via `model=path, config=yaml` at your own risk.
@@ -124,12 +128,12 @@ python benchmarks/bench_synthetic.py --seconds 60
 python benchmarks/ladder.py
 ```
 
-On the reference machine the full suite with weights (and the optional `upstream` extra) is 123 tests in 71 s. See [CONTRIBUTING.md](CONTRIBUTING.md).
+On the reference machine the full suite with weights (and the optional `upstream` extra) is 127 tests in 74 s (30 s without weights). See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Roadmap
 
-- Mel-band RoFormer models (an experimental fast path on the same kernels reaches ~0.36 chunk RTF at ~61 dB vs
-  fp32; needs packaging and tests).
+- Mel-band RoFormer models (a pre-release experiment, not in this repository, reached ~0.36 chunk RTF at ~61 dB
+  vs fp32 on the same kernels; needs packaging and tests).
 - More checkpoints in the registry (e.g. the vocals variant of Resurrection) with pinned checksums.
 - Kernels for ARM (SVE/NEON bf16 dot products, Apple AMX) and AVX2-only x86.
 - Processing several chunks concurrently on many-core servers; a streaming API.
